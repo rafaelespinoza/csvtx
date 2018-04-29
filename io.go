@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+type Transaction interface {
+	AsRow() []string
+}
+
+type TransactionList interface {
+	Export() []Transaction
+}
+
 func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 	csvFile, err := os.Open(filepath)
 
