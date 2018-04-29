@@ -10,13 +10,7 @@ func (a Amount) String() string {
 	absVal := a.abs()
 	dollars := absVal / 100
 	cents := absVal % 100
-	result := numStr(dollars) + "." + centStr(cents)
-
-	if a.isNegative() {
-		return "(" + result + ")"
-	} else {
-		return result
-	}
+	return numStr(dollars) + "." + centStr(cents)
 }
 
 func (a *Amount) isNegative() bool {

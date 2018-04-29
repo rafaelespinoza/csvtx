@@ -5,4 +5,4 @@ const credit = "credit"
 
 var TransactionTypes = [2]string{debit, credit}
 
-const DateOutputFormat = "2006-01-02"
+const DateOutputFormat = "01/02/2006"

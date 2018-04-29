@@ -50,6 +50,9 @@ func WriteFormatYnab(mints *[]MintTransaction, targetAcctName, outputFile string
 
 	w := csv.NewWriter(file)
 
+	w.Write(YnabHeader)
+	w.Flush()
+
 	var ynab YnabTransaction
 	var row []string
 	var txAcctType string
@@ -113,7 +116,7 @@ func parseLine(line []string) MintTransaction {
 	mt := MintTransaction{
 		Date:            parseDate(line[0]),
 		Description:     parseString(line[1]),
-		transactionType: tt,
+		TransactionType: tt,
 		Category:        parseString(line[5]),
 		Account:         parseString(line[6]),
 		Notes:           parseString(line[8]),

@@ -12,7 +12,7 @@ type MintTransaction struct {
 	Account         string
 	Notes           string
 	Amount          Amount // cents
-	transactionType string // [debit, credit]
+	TransactionType string // [debit, credit]
 
 	// ignoring these columns from mint csv file:
 	// "Original Description", "Labels"
@@ -44,11 +44,11 @@ func (mty MintToYnab) Export() []YnabTransaction {
 
 func (mt MintTransaction) asYnabTx() YnabTransaction {
 	return YnabTransaction{
-		Date:     mt.Date, // hope this is not a reference
-		CheckNum: 0,       // TODO: extract from t.Notes? t.Description?
+		Date:     mt.Date,
 		Payee:    mt.Description,
+		Category: mt.Category,
 		Memo:     mt.Notes,
-		Amount:   mt.Amount, // hopefully not a reference
+		Amount:   mt.Amount,
 	}
 }
 
@@ -64,7 +64,7 @@ func (mt MintTransaction) AsRow() []string {
 }
 
 func (mt MintTransaction) isNegative() (bool, error) {
-	tt := mt.transactionType
+	tt := mt.TransactionType
 
 	if tt == TransactionTypes[0] {
 		return true, nil
@@ -78,10 +78,11 @@ func (mt MintTransaction) isNegative() (bool, error) {
 
 func (mt MintTransaction) Display() string {
 	return fmt.Sprintf(
-		"{ Date: '%s', Description: '%s', Amount: %s, Category: '%s', Account: '%s', Notes: '%s' }",
+		"{ Date: '%s', Description: '%s', Amount: %s, TransactionType: %s, Category: '%s', Account: '%s', Notes: '%s' }",
 		mt.Date.Format(DateOutputFormat),
 		mt.Description,
 		mt.Amount,
+		mt.TransactionType,
 		mt.Category,
 		mt.Account,
 		mt.Notes,

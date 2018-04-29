@@ -5,10 +5,14 @@ import (
 	"time"
 )
 
+var YnabHeader = []string{
+	"Date", "Payee", "Category", "Memo", "Outflow", "Inflow",
+}
+
 type YnabTransaction struct {
 	Date     time.Time
-	CheckNum int
 	Payee    string
+	Category string
 	Memo     string
 	Amount   Amount // cents
 }
@@ -16,19 +20,40 @@ type YnabTransaction struct {
 func (yt YnabTransaction) AsRow() []string {
 	return []string{
 		yt.Date.Format(DateOutputFormat),
-		fmt.Sprint(yt.CheckNum),
 		yt.Payee,
+		yt.Category,
 		yt.Memo,
-		fmt.Sprint(yt.Amount),
+		xflow(yt.Amount, "out"),
+		xflow(yt.Amount, "in"),
 	}
 }
+
+func xflow(amt Amount, direction string) string {
+	isNegative := amt.isNegative()
+	isInflow := direction == "in"
+
+	if (isNegative && isInflow) || (!isNegative && !isInflow) {
+		return ""
+	} else if (isNegative && !isInflow) || (!isNegative && isInflow) {
+		return amt.String()
+	} else {
+		return fmt.Sprintf("y'all fucked up: %d, %s", amt, direction)
+	}
+}
+
 func (yt YnabTransaction) Display() string {
+	amt := yt.Amount.String()
+
+	if yt.Amount.isNegative() {
+		amt = "(" + amt + ")"
+	}
+
 	return fmt.Sprintf(
-		"{ Date: '%s', CheckNum: %d, Payee: '%s', Memo: '%s', Amount: '%s' }",
+		"{ Date: '%s', Payee: '%s', Category: %s, Memo: '%s', Amount: '%s' }",
 		yt.Date.Format(DateOutputFormat),
-		yt.CheckNum,
 		yt.Payee,
+		yt.Category,
 		yt.Memo,
-		yt.Amount,
+		amt,
 	)
 }
