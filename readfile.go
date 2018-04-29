@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func ReadParse(filepath string, callback func([]Transaction)) {
+func ReadParse(filepath string, callback func([]MintTransaction)) {
 	csvFile, err := os.Open(filepath)
 
 	if err != nil {

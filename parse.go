@@ -11,7 +11,7 @@ import (
 
 func ParseCSV(
 	reader *csv.Reader,
-	callback func([]Transaction),
+	callback func([]MintTransaction),
 	ignoreHeaders bool,
 ) {
 	if ignoreHeaders {
@@ -23,7 +23,7 @@ func ParseCSV(
 		}
 	}
 
-	var transactions []Transaction
+	var transactions []MintTransaction
 
 	for {
 		line, err := reader.Read()
@@ -40,11 +40,11 @@ func ParseCSV(
 	callback(transactions)
 }
 
-func parseLine(line []string) Transaction {
+func parseLine(line []string) MintTransaction {
 	// columns to ignore:
 	// "Original Description" 	(index 2)
 	// "Labels" 				(index 7)
-	return Transaction{
+	return MintTransaction{
 		Date:            parseDate(line[0]),
 		Description:     parseString(line[1]),
 		Amount:          parseMoney(line[3]), // "1234.56"
