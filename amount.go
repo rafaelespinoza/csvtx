@@ -7,14 +7,15 @@ import (
 type Amount int
 
 func (a Amount) String() string {
-	d := int(a / 100) // dollars
-	c := int(a % 100) // cents
-	s := numStr(d) + "." + cents(c)
+	absVal := a.abs()
+	dollars := absVal / 100
+	cents := absVal % 100
+	result := numStr(dollars) + "." + centStr(cents)
 
 	if a.isNegative() {
-		return "(" + s + ")"
+		return "(" + result + ")"
 	} else {
-		return s
+		return result
 	}
 }
 
@@ -22,7 +23,17 @@ func (a *Amount) isNegative() bool {
 	return int(*a) < 0
 }
 
-func cents(c int) string {
+func (a Amount) abs() int {
+	num := int(a)
+
+	if a.isNegative() {
+		return num * -1
+	} else {
+		return num
+	}
+}
+
+func centStr(c int) string {
 	s := numStr(c)
 
 	if c < 10 {

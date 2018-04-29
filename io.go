@@ -65,28 +65,55 @@ func parseLine(line []string) MintTransaction {
 	// columns to ignore:
 	// "Original Description" 	(index 2)
 	// "Labels" 				(index 7)
-	return MintTransaction{
+	tt := parseString(line[4])
+
+	mt := MintTransaction{
 		Date:            parseDate(line[0]),
 		Description:     parseString(line[1]),
-		Amount:          parseMoney(line[3]), // "1234.56"
-		TransactionType: parseString(line[4]),
+		transactionType: tt,
 		Category:        parseString(line[5]),
 		Account:         parseString(line[6]),
 		Notes:           parseString(line[8]),
 	}
+
+	isNegative, err := mt.isNegative()
+
+	if err != nil {
+		log.Fatalf("error setting transaction type. %T, %v. %v\n", mt, mt, err)
+	}
+
+	mt.Amount = parseMoney(line[3], isNegative) // "1234.56"
+	return mt
 }
 
-func parseMoney(cell string) Amount {
+func parseMoney(cell string, isNegative bool) Amount {
 	s := fallbackStr(cell, "0.00")
-	dc := strings.Replace(s, ".", "", 1)
-	m, e := strconv.ParseInt(dc, 0, 0)
+	dc := strings.Split(s, ".")
+	d, c := dc[0], dc[1] // dollars, cents
+
+	var m int64
+	var e error
+
+	if d == "0" {
+		m, e = strconv.ParseInt(c, 0, 0)
+	} else {
+		m, e = strconv.ParseInt(strings.Join(dc, ""), 0, 0)
+	}
 
 	if e != nil {
-		log.Fatalf("error parsing money: %v", cell)
+		log.Fatalf("error parsing money. cell: %v, dc: %v, m: %d", cell, dc, m)
 		return 0
 	}
 
-	return Amount(int(m))
+	var a int
+
+	if isNegative {
+		a = int(m * -1)
+	} else {
+		a = int(m)
+	}
+
+	return Amount(a)
 }
 
 func parseString(cell string) string {
