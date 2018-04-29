@@ -30,6 +30,49 @@ func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 	ParseCSV(reader, callback, true)
 }
 
+func WriteAcctFiles(transactions []MintTransaction) {
+	uniqAcctNames := NewAccountNameMap(&transactions)
+
+	// keep it simple, use multiple passes to do write files per account.
+	for acct, file := range uniqAcctNames {
+		// TODO: use goroutines for super-coolness
+		WriteFormatYnab(&transactions, acct, file)
+	}
+}
+
+func WriteFormatYnab(mints *[]MintTransaction, targetAcctName, outputFile string) {
+	file, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
+	defer file.Close()
+
+	if err != nil {
+		log.Fatalln("error opening file")
+	}
+
+	w := csv.NewWriter(file)
+
+	var ynab YnabTransaction
+	var row []string
+	var txAcctType string
+
+	for _, mintTx := range *mints {
+		txAcctType = mintTx.Account
+
+		if txAcctType == targetAcctName {
+			ynab = mintTx.asYnabTx()
+			row = ynab.AsRow()
+			w.Write(row)
+		}
+	}
+
+	w.Flush()
+
+	if err := w.Error(); err != nil {
+		log.Fatalln("error writing csv:", err)
+	}
+
+	log.Printf("wrote file %s\n", outputFile)
+}
+
 func ParseCSV(
 	reader *csv.Reader,
 	callback func([]MintTransaction),
