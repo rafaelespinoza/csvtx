@@ -2,7 +2,6 @@ package csvtx
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -55,7 +54,7 @@ func (mt MintTransaction) asYnabTx() YnabTransaction {
 
 func (mt MintTransaction) AsRow() []string {
 	return []string{
-		mt.Date.Format("2006-01-02"),
+		mt.Date.Format(DateOutputFormat),
 		mt.Description,
 		fmt.Sprint(mt.Amount),
 		mt.TransactionType,
@@ -65,17 +64,15 @@ func (mt MintTransaction) AsRow() []string {
 	}
 }
 
-func (t MintTransaction) String() string {
-	txType := strings.ToLower(t.TransactionType)
-
+func (mt MintTransaction) Display() string {
 	return fmt.Sprintf(
 		"{ Date: '%s', Description: '%s', Amount: %s, TransactionType: '%s', Category: '%s', Account: '%s', Notes: '%s' }",
-		t.Date.Format("2006-01-02"),
-		t.Description,
-		t.Amount,
-		txType,
-		t.Category,
-		t.Account,
-		t.Notes,
+		mt.Date.Format(DateOutputFormat),
+		mt.Description,
+		mt.Amount,
+		mt.TransactionType,
+		mt.Category,
+		mt.Account,
+		mt.Notes,
 	)
 }
