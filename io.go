@@ -1,13 +1,26 @@
 package csvtx
 
 import (
+	"bufio"
 	"encoding/csv"
 	"io"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func ReadParseMint(filepath string, callback func([]MintTransaction)) {
+	csvFile, err := os.Open(filepath)
+
+	if err != nil {
+		log.Fatalf("error opening file\n%v\n", err)
+	}
+
+	reader := csv.NewReader(bufio.NewReader(csvFile))
+	ParseCSV(reader, callback, true)
+}
 
 func ParseCSV(
 	reader *csv.Reader,
