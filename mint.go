@@ -18,30 +18,6 @@ type MintTransaction struct {
 	// "Original Description", "Labels"
 }
 
-type MintToYnab []MintTransaction
-
-func InitMintToYnab(mt *[]MintTransaction) MintToYnab {
-	n := len(*mt)
-	mty := make(MintToYnab, n, n)
-
-	for i, t := range *mt {
-		mty[i] = t
-	}
-
-	return mty
-}
-
-func (mty MintToYnab) Export() []YnabTransaction {
-	n := len(mty)
-	yt := make([]YnabTransaction, n, n)
-
-	for i, t := range mty {
-		yt[i] = t.asYnabTx()
-	}
-
-	return yt
-}
-
 func (mt MintTransaction) asYnabTx() YnabTransaction {
 	return YnabTransaction{
 		Date:     mt.Date,

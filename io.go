@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-type Transaction interface {
-	AsRow() []string
-}
-
-type TransactionList interface {
-	Export() []Transaction
-}
-
 func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 	csvFile, err := os.Open(filepath)
 
@@ -27,11 +19,11 @@ func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 	}
 
 	reader := csv.NewReader(bufio.NewReader(csvFile))
-	ParseCSV(reader, callback, true)
+	parseCSV(reader, callback, true)
 }
 
 func WriteAcctFiles(transactions []MintTransaction) {
-	uniqAcctNames := NewAccountNameMap(&transactions)
+	uniqAcctNames := newAccountNameMap(&transactions)
 	results := make([]string, 0, len(uniqAcctNames))
 
 	// keep it simple, use multiple passes to write one file per account.
@@ -98,7 +90,7 @@ func writeFormatYnab(
 	return outputFile
 }
 
-func ParseCSV(
+func parseCSV(
 	reader *csv.Reader,
 	callback func([]MintTransaction),
 	ignoreHeaders bool,
@@ -133,15 +125,15 @@ func parseLine(line []string) MintTransaction {
 	// columns to ignore:
 	// "Original Description" 	(index 2)
 	// "Labels" 				(index 7)
-	tt := parseString(line[4])
+	tt := line[4]
 
 	mt := MintTransaction{
 		Date:            parseDate(line[0]),
-		Description:     parseString(line[1]),
+		Description:     line[1],
 		TransactionType: tt,
-		Category:        parseString(line[5]),
-		Account:         parseString(line[6]),
-		Notes:           parseString(line[8]),
+		Category:        line[5],
+		Account:         line[6],
+		Notes:           line[8],
 	}
 
 	isNegative, err := mt.isNegative()
@@ -182,10 +174,6 @@ func parseMoney(cell string, isNegative bool) Amount {
 	}
 
 	return Amount(a)
-}
-
-func parseString(cell string) string {
-	return cell
 }
 
 func parseDate(inputDate string) time.Time {

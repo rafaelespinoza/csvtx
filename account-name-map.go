@@ -11,7 +11,7 @@ var uppercase = regexp.MustCompile(`[A-Z]`)
 
 type AccountNameMap map[string]string
 
-func NewAccountNameMap(mints *[]MintTransaction) AccountNameMap {
+func newAccountNameMap(mints *[]MintTransaction) AccountNameMap {
 	uniqAcctNames := AccountNameMap{}
 
 	var txAcctType string
