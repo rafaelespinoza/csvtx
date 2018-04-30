@@ -32,15 +32,36 @@ func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 
 func WriteAcctFiles(transactions []MintTransaction) {
 	uniqAcctNames := NewAccountNameMap(&transactions)
+	results := make([]string, 0, len(uniqAcctNames))
 
-	// keep it simple, use multiple passes to do write files per account.
+	// keep it simple, use multiple passes to write one file per account.
 	for acct, file := range uniqAcctNames {
-		// TODO: use goroutines for super-coolness
-		WriteFormatYnab(&transactions, acct, file)
+		result := <-writeFormatYnabAsync(&transactions, acct, file)
+		results = append(results, result)
 	}
+
+	log.Println(results)
 }
 
-func WriteFormatYnab(mints *[]MintTransaction, targetAcctName, outputFile string) {
+func writeFormatYnabAsync(
+	mints *[]MintTransaction,
+	targetAcctName,
+	fileName string,
+) <-chan string {
+	c := make(chan string)
+
+	go func() {
+		c <- writeFormatYnab(mints, targetAcctName, fileName)
+	}()
+
+	return c
+}
+
+func writeFormatYnab(
+	mints *[]MintTransaction,
+	targetAcctName,
+	outputFile string,
+) string {
 	file, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
 	defer file.Close()
 
@@ -74,6 +95,7 @@ func WriteFormatYnab(mints *[]MintTransaction, targetAcctName, outputFile string
 	}
 
 	log.Printf("wrote file %s\n", outputFile)
+	return outputFile
 }
 
 func ParseCSV(
