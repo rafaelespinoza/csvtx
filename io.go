@@ -12,14 +12,19 @@ import (
 )
 
 func ReadParseMint(filepath string, callback func([]MintTransaction)) {
-	csvFile, err := os.Open(filepath)
+	csvReader := initCsvReader(filepath)
+	parseCSV(csvReader, callback, true)
+}
+
+func initCsvReader(filepath string) *csv.Reader {
+	file, err := os.Open(filepath)
 
 	if err != nil {
 		log.Fatalf("error opening file\n%v\n", err)
 	}
 
-	reader := csv.NewReader(bufio.NewReader(csvFile))
-	parseCSV(reader, callback, true)
+	br := bufio.NewReader(file)
+	return csv.NewReader(br)
 }
 
 func WriteAcctFiles(transactions []MintTransaction) {
@@ -54,18 +59,38 @@ func writeFormatYnab(
 	targetAcctName,
 	outputFile string,
 ) string {
-	file, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
-	defer file.Close()
+	w := initCsvWriter(outputFile)
+
+	defer w.file.Close()
+
+	w.writeHeaders()
+	w.writeBody(mints, targetAcctName)
+
+	log.Printf("wrote file %s\n", outputFile)
+	return outputFile
+}
+
+type CsvWriter struct {
+	file   *os.File
+	writer *csv.Writer
+}
+
+func initCsvWriter(filename string) CsvWriter {
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0600)
 
 	if err != nil {
 		log.Fatalln("error opening file")
 	}
 
-	w := csv.NewWriter(file)
+	return CsvWriter{file, csv.NewWriter(file)}
+}
 
-	w.Write(YnabHeader)
-	w.Flush()
+func (w *CsvWriter) writeHeaders() {
+	w.writer.Write(YnabHeader)
+	w.writer.Flush()
+}
 
+func (w *CsvWriter) writeBody(mints *[]MintTransaction, targetAcctName string) {
 	var ynab YnabTransaction
 	var row []string
 	var txAcctType string
@@ -76,18 +101,15 @@ func writeFormatYnab(
 		if txAcctType == targetAcctName {
 			ynab = mintTx.asYnabTx()
 			row = ynab.AsRow()
-			w.Write(row)
+			w.writer.Write(row)
 		}
 	}
 
-	w.Flush()
+	w.writer.Flush()
 
-	if err := w.Error(); err != nil {
+	if err := w.writer.Error(); err != nil {
 		log.Fatalln("error writing csv:", err)
 	}
-
-	log.Printf("wrote file %s\n", outputFile)
-	return outputFile
 }
 
 func parseCSV(
