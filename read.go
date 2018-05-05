@@ -86,6 +86,11 @@ func parseLine(line []string) MintTransaction {
 func parseMoney(cell string, isNegative bool) Amount {
 	s := fallbackStr(cell, "0.00")
 	dc := strings.Split(s, ".")
+
+	if len(dc) < 2 {
+		dc = append(dc, "00")
+	}
+
 	d, c := dc[0], dc[1] // dollars, cents
 
 	var m int64
