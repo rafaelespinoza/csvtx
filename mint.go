@@ -5,6 +5,33 @@ import (
 	"time"
 )
 
+func (mt *MintTransaction) Equal(mu MintTransaction) bool {
+	if mt.Amount != mu.Amount {
+		return false
+	}
+
+	if !mt.Date.Equal(mu.Date) {
+		return false
+	}
+
+	mta := mt.strAttrs()
+	mua := mu.strAttrs()
+
+	for i, a := range mta {
+		if a != mua[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (mt *MintTransaction) strAttrs() []string {
+	return []string{
+		mt.Description, mt.Category, mt.Account, mt.Notes, mt.TransactionType,
+	}
+}
+
 type MintTransaction struct {
 	Date            time.Time
 	Description     string
