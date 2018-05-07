@@ -13,7 +13,7 @@ import (
 
 func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 	csvReader := initCsvReader(filepath)
-	parseCSV(csvReader, callback, true)
+	parseCSV(csvReader, callback)
 }
 
 func initCsvReader(filepath string) *csv.Reader {
@@ -30,15 +30,12 @@ func initCsvReader(filepath string) *csv.Reader {
 func parseCSV(
 	reader *csv.Reader,
 	callback func([]MintTransaction),
-	ignoreHeaders bool,
 ) {
-	if ignoreHeaders {
-		// ignore first line (it's usually headers, not data) and it screws up
-		// parsing of data
-		_, firstLineErr := reader.Read()
-		if firstLineErr != nil {
-			log.Fatalln("error reading the first line!")
-		}
+	// Ignore first line b/c it's usually headers, not data. It screws up
+	// parsing of data
+	_, firstLineErr := reader.Read()
+	if firstLineErr != nil {
+		log.Fatalln("error reading the first line!")
 	}
 
 	var transactions []MintTransaction
