@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// Interpret the csv file at filepath as exported csv transactions from Mint.com
+// and then invoke callback on all of the parsed rows. Typically, this argument
+// would be WriteAcctFiles.
 func ReadParseMint(filepath string, callback func([]MintTransaction)) {
 	csvReader := initCsvReader(filepath)
 	parseCSV(csvReader, callback)

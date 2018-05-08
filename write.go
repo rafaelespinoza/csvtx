@@ -6,6 +6,9 @@ import (
 	"os"
 )
 
+// Creates a new csv file for every unique account found in transactions. Files
+// are put into current working directory. Pass this function as a callback to
+// ReadParseMint. Logs results to standard output.
 func WriteAcctFiles(transactions []MintTransaction) {
 	uniqAcctNames := newAccountNameMap(&transactions)
 	results := make([]string, 0, len(uniqAcctNames))
