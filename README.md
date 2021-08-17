@@ -16,13 +16,3 @@ to CSV. Pass in the file path of the exported csv file your function. Run the
 program, which produces another csv file for every unique account name found
 among the rows in input csv file. Use each output file to populate the
 corresponding account in YNAB4.
-
-```go
-package main
-
-import "github.com/rafaelespinoza/csvtx"
-
-func main() {
-  csvtx.ReadParseMint("path/to/file.csv", csvtx.WriteAcctFiles)
-}
-```

@@ -1,4 +1,4 @@
-package csvtx
+package task
 
 import (
 	"bufio"
@@ -9,12 +9,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rafaelespinoza/csvtx/internal/entity"
+	"github.com/rafaelespinoza/csvtx/internal/product/mint"
 )
 
 // Interpret the csv file at filepath as exported csv transactions from Mint.com
 // and then invoke callback on all of the parsed rows. Typically, this argument
 // would be WriteAcctFiles.
-func ReadParseMint(filepath string, callback func([]MintTransaction)) {
+func ReadParseMint(filepath string, callback func([]mint.Transaction)) {
 	csvReader := initCsvReader(filepath)
 	parseCSV(csvReader, callback)
 }
@@ -30,10 +33,7 @@ func initCsvReader(filepath string) *csv.Reader {
 	return csv.NewReader(br)
 }
 
-func parseCSV(
-	reader *csv.Reader,
-	callback func([]MintTransaction),
-) {
+func parseCSV(reader *csv.Reader, callback func([]mint.Transaction)) {
 	// Ignore first line b/c it's usually headers, not data. It screws up
 	// parsing of data
 	_, firstLineErr := reader.Read()
@@ -41,7 +41,7 @@ func parseCSV(
 		log.Fatalln("error reading the first line!")
 	}
 
-	var transactions []MintTransaction
+	var transactions []mint.Transaction
 
 	for {
 		line, err := reader.Read()
@@ -58,13 +58,13 @@ func parseCSV(
 	callback(transactions)
 }
 
-func parseLine(line []string) MintTransaction {
+func parseLine(line []string) mint.Transaction {
 	// columns to ignore:
 	// "Original Description" 	(index 2)
 	// "Labels" 				(index 7)
 	tt := line[4]
 
-	mt := MintTransaction{
+	mt := mint.Transaction{
 		Date:            parseDate(line[0]),
 		Description:     line[1],
 		TransactionType: tt,
@@ -73,7 +73,7 @@ func parseLine(line []string) MintTransaction {
 		Notes:           line[8],
 	}
 
-	isNegative, err := mt.isNegative()
+	isNegative, err := mt.Negative()
 
 	if err != nil {
 		log.Fatalf("error setting transaction type. %T, %v. %v\n", mt, mt, err)
@@ -83,7 +83,7 @@ func parseLine(line []string) MintTransaction {
 	return mt
 }
 
-func parseMoney(cell string, isNegative bool) Amount {
+func parseMoney(cell string, isNegative bool) entity.AmountSubunits {
 	s := fallbackStr(cell, "0.00")
 	dc := strings.Split(s, ".")
 
@@ -115,7 +115,7 @@ func parseMoney(cell string, isNegative bool) Amount {
 		a = int(m)
 	}
 
-	return Amount(a)
+	return entity.AmountSubunits(a)
 }
 
 func parseDate(inputDate string) time.Time {
