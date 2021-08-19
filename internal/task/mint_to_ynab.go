@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rafaelespinoza/csvtx/internal/product/mint"
-	"github.com/rafaelespinoza/csvtx/internal/product/ynab"
+	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
 
 func MintToYNAB(p Params) error {
@@ -41,16 +40,16 @@ func MintToYNAB(p Params) error {
 		}
 	}()
 
-	return readParseMint(p.Infile, func(m *mint.Transaction) error {
+	return readParseMint(p.Infile, func(m *entity.Mint) error {
 		if _, ok := filesByAccount[m.Account]; !ok {
-			entry, err := initOutfile(m.Account, ynab.Headers, p.Outdir)
+			entry, err := initOutfile(m.Account, ynabHeaders, p.Outdir)
 			if err != nil {
 				return err
 			}
 			filesByAccount[m.Account] = &entry
 		}
 		csvWriter := filesByAccount[m.Account].w
-		ynabTx := ynab.Transaction{
+		ynabTx := entity.YNAB{
 			Date:     m.Date,
 			Payee:    m.Description,
 			Category: m.Category,
@@ -60,4 +59,8 @@ func MintToYNAB(p Params) error {
 		row := ynabTx.AsRow()
 		return csvWriter.Write(row)
 	})
+}
+
+var ynabHeaders = []string{
+	"Date", "Payee", "Category", "Memo", "Outflow", "Inflow",
 }

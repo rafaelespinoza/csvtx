@@ -8,12 +8,11 @@ import (
 	"os"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
-	"github.com/rafaelespinoza/csvtx/internal/product/mint"
 )
 
 // readParseMint interprets a CSV file at filepath as exported transactions from
 // Mint.com and invokes onRow to handle a parsed CSV row.
-func readParseMint(filepath string, callback func(*mint.Transaction) error) error {
+func readParseMint(filepath string, callback func(*entity.Mint) error) error {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return err
@@ -24,7 +23,7 @@ func readParseMint(filepath string, callback func(*mint.Transaction) error) erro
 	return parseMintCSV(csvReader, callback)
 }
 
-func parseMintCSV(reader *csv.Reader, onRow func(*mint.Transaction) error) error {
+func parseMintCSV(reader *csv.Reader, onRow func(*entity.Mint) error) error {
 	// Ignore first line b/c it's usually headers, not data. It screws up
 	// parsing of data
 	lineNumber := 1
@@ -53,7 +52,7 @@ func parseMintCSV(reader *csv.Reader, onRow func(*mint.Transaction) error) error
 	}
 }
 
-func parseMintRow(in []string) (out *mint.Transaction, err error) {
+func parseMintRow(in []string) (out *entity.Mint, err error) {
 	// columns to ignore:
 	// "Original Description" 	(index 2)
 	// "Labels" 				(index 7)
@@ -64,7 +63,7 @@ func parseMintRow(in []string) (out *mint.Transaction, err error) {
 		return
 	}
 
-	mt := mint.Transaction{
+	mt := entity.Mint{
 		Date:            date,
 		Description:     in[1],
 		TransactionType: tt,
