@@ -83,5 +83,7 @@ tags
 # Persistent undo
 [._]*.un~
 
+bin
+
 # environment variables & secrets might go here
 .env*
