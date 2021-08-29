@@ -5,6 +5,17 @@ import (
 	"time"
 )
 
+type MechanicsBank struct {
+	Date         time.Time
+	Description  string
+	Memo         string
+	AmountDebit  AmountSubunits
+	AmountCredit AmountSubunits
+	Balance      AmountSubunits
+	CheckNumber  int
+	Fees         AmountSubunits
+}
+
 type Mint struct {
 	Date            time.Time
 	Description     string
@@ -29,27 +40,16 @@ func (t Mint) Negative() (bool, error) {
 	}
 }
 
+type WellsFargo struct {
+	Date        time.Time
+	Amount      AmountSubunits
+	Description string
+}
+
 type YNAB struct {
 	Date     time.Time
 	Payee    string
 	Category string
 	Memo     string
 	Amount   AmountSubunits
-}
-
-func (t YNAB) AsRow() []string {
-	var outflow, inflow string
-	if t.Amount < 0 {
-		outflow = t.Amount.String()
-	} else {
-		inflow = t.Amount.String()
-	}
-	return []string{
-		t.Date.Format("01/02/2006"),
-		t.Payee,
-		t.Category,
-		t.Memo,
-		outflow,
-		inflow,
-	}
 }

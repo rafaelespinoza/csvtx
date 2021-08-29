@@ -1,4 +1,4 @@
-package task
+package convert
 
 import (
 	"encoding/csv"
@@ -17,6 +17,27 @@ type Params struct {
 	Infile  string
 	Outdir  string
 	LogDest io.Writer
+}
+
+func (p *Params) init() error {
+	if p.Outdir == "" {
+		if outdir, err := os.MkdirTemp("", "csvtx_*"); err != nil {
+			return err
+		} else {
+			fmt.Fprintf(p.LogDest, "files will be written to tempdir %q\n", outdir)
+			p.Outdir = outdir
+		}
+	}
+
+	if p.LogDest == nil {
+		p.LogDest = os.Stderr
+	}
+
+	return nil
+}
+
+var ynabHeaders = []string{
+	"Date", "Payee", "Category", "Memo", "Outflow", "Inflow",
 }
 
 func parseDate(inputDate string) (t time.Time, e error) {
@@ -50,8 +71,8 @@ type csvOut struct {
 	w *csv.Writer
 }
 
-func initOutfile(accountType string, headers []string, basedir string) (out csvOut, err error) {
-	filename := strings.TrimSpace(accountType)
+func initOutfile(accountName string, headers []string, basedir string) (out csvOut, err error) {
+	filename := strings.TrimSpace(accountName)
 	filename = strings.Replace(filename, " ", "-", -1)
 	filename = strings.ToLower(filename)
 	filename = path.Join(basedir, filename+".csv")
@@ -77,4 +98,21 @@ func writeCSVHeaders(w *csv.Writer, headers []string) (err error) {
 	w.Flush()
 	err = w.Error()
 	return
+}
+
+func ynabAsRow(t entity.YNAB) []string {
+	var outflow, inflow string
+	if t.Amount < 0 {
+		outflow = t.Amount.String()
+	} else {
+		inflow = t.Amount.String()
+	}
+	return []string{
+		t.Date.Format("01/02/2006"),
+		t.Payee,
+		t.Category,
+		t.Memo,
+		outflow,
+		inflow,
+	}
 }

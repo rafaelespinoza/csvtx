@@ -7,52 +7,75 @@ import (
 	"strings"
 
 	"github.com/rafaelespinoza/alf"
-	"github.com/rafaelespinoza/csvtx/internal/task"
+	"github.com/rafaelespinoza/csvtx/internal/convert"
 )
 
+const (
+	serviceMechanicsBank = "mechanicsbank"
+	serviceMint          = "mint"
+	serviceWellsFargo    = "wellsfargo"
+)
+
+var fromServices = []string{
+	serviceMechanicsBank,
+	serviceMint,
+	serviceWellsFargo,
+}
+
 func makeConvert(cmdName string) alf.Directive {
-	var params task.Params
-
-	out := alf.Delegator{
-		Description: "convert csv to csv data for another service/program",
-		Flags:       flag.NewFlagSet(cmdName, flag.ExitOnError),
+	var params struct {
+		Infile string
+		Outdir string
+		From   string
 	}
-	out.Flags.StringVar(&params.Infile, "i", "", "path to input csv")
-	out.Flags.StringVar(&params.Outdir, "o", "/tmp", "path to output directory")
 
-	out.Subs = map[string]alf.Directive{
-		"mint-to-ynab": &alf.Command{
-			Description: "convert Mint CSV data to YNAB4 data",
-			Setup: func(p flag.FlagSet) *flag.FlagSet {
-				p.Usage = func() {
-					fmt.Fprintf(p.Output(), `Usage: %s %s
+	out := alf.Command{
+		Description: "convert csv to csv data for YNAB4 import",
+		Setup: func(p flag.FlagSet) *flag.FlagSet {
+			flags := flag.NewFlagSet(cmdName, flag.ExitOnError)
+			flags.StringVar(&params.Infile, "i", "", "path to input csv")
+			flags.StringVar(&params.Outdir, "o", "/tmp", "path to output directory")
+			flags.StringVar(
+				&params.From,
+				"from",
+				"",
+				fmt.Sprintf("product/service of input file; one of %v", fromServices),
+			)
+
+			flags.Usage = func() {
+				fmt.Fprintf(flags.Output(), `Usage: %s %s -from from -i infile -o outdir
 
 Description:
 
-Flags:
-
-`, _Bin, cmdName)
-					p.PrintDefaults()
-				}
-				return &p
-			},
-			Run: func(ctx context.Context) error {
-				return task.MintToYNAB(params)
-			},
-		},
-	}
-
-	out.Flags.Usage = func() {
-		fmt.Fprintf(out.Flags.Output(), `Description: convert CSV to CSV
-
-Subcommands:
+	Converts an input CSV from a source service to a CSV format ready for import
+	into YNAB 4 classic edition. The source service must be one of:
 
 	%v
 
 Flags:
 
-`, strings.Join(out.DescribeSubcommands(), "\n\t"))
-		out.Flags.PrintDefaults()
+`, _Bin, cmdName, strings.Join(fromServices, "\n\t"))
+				flags.PrintDefaults()
+			}
+
+			return flags
+		},
+		Run: func(_ context.Context) error {
+			p := convert.Params{
+				Infile: params.Infile,
+				Outdir: params.Outdir,
+			}
+			switch params.From {
+			case serviceMechanicsBank:
+				return convert.MechanicsBankToYNAB(p)
+			case serviceMint:
+				return convert.MintToYNAB(p)
+			case serviceWellsFargo:
+				return convert.WellsFargoToYNAB(p)
+			default:
+				return fmt.Errorf("unknown source service %q", params.From)
+			}
+		},
 	}
 
 	return &out

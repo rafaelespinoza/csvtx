@@ -4,7 +4,9 @@ Convert exported CSV financial transactions for import into YNAB4.
 
 Currently supported source services:
 
+- Mechanic's Bank
 - Mint
+- Wells Fargo
 
 Motivation: I like YNAB4 (classic edition) for personal budgeting, but it
 requires you to manually input each transaction and I don't always keep up with
@@ -24,14 +26,26 @@ make all
 
 Then use the `convert` command to convert a CSV.
 
-Use `convert mint-to-ynab` to convert exported transactions from Mint.com. It
-will create one output file per account type.
+Convert exported Mint.com transactions and produce one output CSV file per
+account type.
 
 ```sh
-% ./bin/csvtx convert mint-to-ynab -i path/to/transactions.csv
+% ./bin/csvtx convert -from mint -i path/to/transactions.csv
 wrote "Checking" file "/tmp/checking.csv"
 wrote "PERSONAL SAVINGS" file "/tmp/personal-savings.csv"
 wrote "Credit" file "/tmp/credit.csv"
+```
+
+Convert Mechanic's Bank transactions.
+```sh
+% ./bin/csvtx convert -from mechanicsbank -i path/to/transactions.csv
+wrote "mechanicsbank" file "/tmp/mechanicsbank.csv"
+```
+
+Convert Wells Fargo transactions.
+```sh
+% ./bin/csvtx convert -from wellsfargo -i path/to/transactions.csv
+wrote "wellsfargo" file "/tmp/wellsfargo.csv"
 ```
 
 The `-o` flag can set the directory of the output file.
