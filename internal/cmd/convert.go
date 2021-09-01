@@ -13,12 +13,14 @@ import (
 const (
 	serviceMechanicsBank = "mechanicsbank"
 	serviceMint          = "mint"
+	serviceVenmo         = "venmo"
 	serviceWellsFargo    = "wellsfargo"
 )
 
 var fromServices = []string{
 	serviceMechanicsBank,
 	serviceMint,
+	serviceVenmo,
 	serviceWellsFargo,
 }
 
@@ -70,6 +72,8 @@ Flags:
 				return convert.MechanicsBankToYNAB(p)
 			case serviceMint:
 				return convert.MintToYNAB(p)
+			case serviceVenmo:
+				return convert.VenmoToYNAB(p)
 			case serviceWellsFargo:
 				return convert.WellsFargoToYNAB(p)
 			default:

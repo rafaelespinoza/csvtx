@@ -7,6 +7,7 @@ Currently supported source services:
 - Mechanic's Bank
 - Mint
 - Wells Fargo
+- Venmo
 
 Motivation: I like YNAB4 (classic edition) for personal budgeting, but it
 requires you to manually input each transaction and I don't always keep up with
@@ -46,6 +47,12 @@ Convert Wells Fargo transactions.
 ```sh
 % ./bin/csvtx convert -from wellsfargo -i path/to/transactions.csv
 wrote "wellsfargo" file "/tmp/wellsfargo.csv"
+```
+
+Convert Venmo transactions.
+```sh
+% ./bin/csvtx convert -from venmo -i path/to/transactions.csv
+wrote "venmo" file "/tmp/venmo.csv"
 ```
 
 The `-o` flag can set the directory of the output file.

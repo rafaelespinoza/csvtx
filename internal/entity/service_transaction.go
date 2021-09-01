@@ -46,6 +46,15 @@ type WellsFargo struct {
 	Description string
 }
 
+type Venmo struct {
+	Datetime        time.Time
+	TransactionType string // [Payment, Charge]
+	Note            string
+	From            string
+	To              string
+	Amount          AmountSubunits
+}
+
 type YNAB struct {
 	Date     time.Time
 	Payee    string
