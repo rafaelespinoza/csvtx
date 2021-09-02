@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -85,8 +84,7 @@ func parseWellsFargoRow(in []string) (out *entity.WellsFargo, err error) {
 		return
 	}
 
-	isNegative := strings.HasPrefix(in[1], "-")
-	amount, err := parseMoney(in[1], isNegative) // "-1234.56", "78.90"
+	amount, err := parseMoney(in[1]) // "-1234.56", "78.90"
 	if err != nil {
 		return
 	}

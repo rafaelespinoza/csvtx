@@ -117,11 +117,12 @@ func parseMechanicsBankRow(in []string) (out *entity.MechanicsBank, err error) {
 		return
 	}
 
-	if amountDebit, err = parseMoney(in[4], true); err != nil { // -1234.56
+	if amountDebit, err = parseMoney(in[4]); err != nil { // -1234.56
 		err = fmt.Errorf("col %d; %w", 4, err)
 		return
 	}
-	if amountCredit, err = parseMoney(in[5], false); err != nil { // 1234.56
+	amountDebit *= -1
+	if amountCredit, err = parseMoney(in[5]); err != nil { // 1234.56
 		err = fmt.Errorf("col %d; %w", 5, err)
 		return
 	}

@@ -10,3 +10,5 @@
 "2/05/2018","Joe's Diner","JOES DINER SF CA","43.21","debit","Restaurants","Checking","labels","some notes"
 "01/20/2018","Fancy Clothes Inc","Conglomerate","250.00","debit","Shopping","Credit","","pants"
 "1/20/2018","Paycheck","ACME","1000000000.00","credit","Income","Checking","label","monthly income"
+"1/18/2018","Off by 1","Rounding test","73.21","debit","test","Checking","label","round test"
+"1/17/2018","Off by 1","Rounding test","39.55","credit","test","Credit","label","round test"

@@ -32,6 +32,7 @@ func TestMintToYNAB(t *testing.T) {
 			{"02/05/2018", "Payment", "Transfer", "", "1234.56", ""},
 			{"02/05/2018", "Joe's Diner", "Restaurants", "some notes", "43.21", ""},
 			{"01/20/2018", "Paycheck", "Income", "monthly income", "", "1000000000.00"},
+			{"01/18/2018", "Off by 1", "test", "round test", "73.21", ""},
 		},
 		"personal-savings.csv": {
 			{"Date", "Payee", "Category", "Memo", "Outflow", "Inflow"},
@@ -43,6 +44,7 @@ func TestMintToYNAB(t *testing.T) {
 		"credit.csv": {
 			{"Date", "Payee", "Category", "Memo", "Outflow", "Inflow"},
 			{"01/20/2018", "Fancy Clothes Inc", "Shopping", "pants", "250.00", ""},
+			{"01/17/2018", "Off by 1", "test", "round test", "", "39.55"},
 		},
 	}
 	for filename, expectedData := range tests {

@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path"
 	"strconv"
@@ -50,7 +51,7 @@ func parseDate(inputDate string) (t time.Time, e error) {
 	return
 }
 
-func parseMoney(cell string, isNegative bool) (out entity.AmountSubunits, err error) {
+func parseMoney(cell string) (out entity.AmountSubunits, err error) {
 	if cell == "" {
 		return
 	}
@@ -58,11 +59,9 @@ func parseMoney(cell string, isNegative bool) (out entity.AmountSubunits, err er
 	if err != nil {
 		return
 	}
-	amt := tmp * 100
-	if isNegative {
-		amt *= -1
-	}
-	out = entity.AmountSubunits(amt)
+	tmp *= 100
+	tmp = math.Round(tmp)
+	out = entity.AmountSubunits(tmp)
 	return
 }
 

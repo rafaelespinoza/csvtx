@@ -34,6 +34,7 @@ func TestMechanicsBankToYNAB(t *testing.T) {
 			{"07/28/2021", "POWER COMPANY WEB ONLINE", "", "", "40.47", ""},
 			{"07/03/2021", "STOP ITEM CHARGE(S)", "", "", "25.00", ""},
 			{"06/21/2021", "RENT", "", "", "1111.00", ""},
+			{"06/11/2021", "ROUND TEST", "", "", "71.82", ""},
 		}
 		if len(got) != len(expectedData) {
 			t.Fatalf("wrong number of output rows; got %d, expected %d", len(got), len(expectedData))

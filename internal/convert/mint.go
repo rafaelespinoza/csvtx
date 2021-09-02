@@ -105,14 +105,15 @@ func parseMintRow(in []string) (out *entity.Mint, err error) {
 		Notes:           in[8],
 	}
 
-	isNegative, err := mt.Negative()
+	amount, err := parseMoney(in[3]) // "1234.56"
 	if err != nil {
 		return
 	}
-
-	amount, err := parseMoney(in[3], isNegative) // "1234.56"
+	negative, err := mt.Negative()
 	if err != nil {
 		return
+	} else if negative {
+		amount *= -1
 	}
 	mt.Amount = amount
 	out = &mt

@@ -12,33 +12,36 @@ import (
 func TestParseMoney(t *testing.T) {
 	tables := []struct {
 		cell     string
-		negative bool
 		expected entity.AmountSubunits
 	}{
-		{"", false, entity.AmountSubunits(0)},
-		{"", true, entity.AmountSubunits(0)},
-		{"0", false, entity.AmountSubunits(0)},
-		{"0", true, entity.AmountSubunits(0)},
-		{"0.01", false, entity.AmountSubunits(1)},
-		{"0.01", true, entity.AmountSubunits(-1)},
-		{"0.99", false, entity.AmountSubunits(99)},
-		{"0.99", true, entity.AmountSubunits(-99)},
-		{"12", false, entity.AmountSubunits(1200)},
-		{"12", true, entity.AmountSubunits(-1200)},
-		{"12.34", false, entity.AmountSubunits(1234)},
-		{"12.34", true, entity.AmountSubunits(-1234)},
-		{"567", false, entity.AmountSubunits(56700)},
-		{"567", true, entity.AmountSubunits(-56700)},
+		{"", entity.AmountSubunits(0)},
+		{"0", entity.AmountSubunits(0)},
+		{"0.01", entity.AmountSubunits(1)},
+		{"-0.01", entity.AmountSubunits(-1)},
+		{"0.99", entity.AmountSubunits(99)},
+		{"-0.99", entity.AmountSubunits(-99)},
+		{"12", entity.AmountSubunits(1200)},
+		{"-12", entity.AmountSubunits(-1200)},
+		{"12.34", entity.AmountSubunits(1234)},
+		{"-12.34", entity.AmountSubunits(-1234)},
+		{"567", entity.AmountSubunits(56700)},
+		{"-567", entity.AmountSubunits(-56700)},
+		// these values have been known to be off by 1 without rounding help.
+		{"64.10", entity.AmountSubunits(6410)},
+		{"-73.21", entity.AmountSubunits(-7321)},
+		{"39.55", entity.AmountSubunits(3955)},
+		{"-8.78", entity.AmountSubunits(-878)},
+		{"71.82", entity.AmountSubunits(7182)},
 	}
 
 	for _, test := range tables {
-		actual, err := parseMoney(test.cell, test.negative)
+		actual, err := parseMoney(test.cell)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		if actual != test.expected {
-			t.Errorf("%v != %v\n", actual, test.expected)
+			t.Errorf("%d != %d\n", actual, test.expected)
 		}
 	}
 }
