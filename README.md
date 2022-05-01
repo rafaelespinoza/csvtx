@@ -1,5 +1,7 @@
 # csvtx
 
+[![ci](https://github.com/rafaelespinoza/csvtx/actions/workflows/ci.yml/badge.svg)](https://github.com/rafaelespinoza/csvtx/actions/workflows/ci.yml)
+
 Convert exported CSV financial transactions for import into YNAB4.
 
 Currently supported source services:

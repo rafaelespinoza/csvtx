@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -55,12 +56,12 @@ func MintToYNAB(p Params) error {
 	})
 }
 
-func readParseMint(filepath string, onRow func(*entity.Mint) error) error {
-	file, err := os.Open(filepath)
+func readParseMint(pathToFile string, onRow func(*entity.Mint) error) error {
+	file, err := os.Open(filepath.Clean(pathToFile))
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	csvReader := csv.NewReader(bufio.NewReader(file))
 

@@ -6,7 +6,7 @@ import (
 	"io"
 	"math"
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -74,8 +74,8 @@ func initOutfile(accountName string, headers []string, basedir string) (out csvO
 	filename := strings.TrimSpace(accountName)
 	filename = strings.Replace(filename, " ", "-", -1)
 	filename = strings.ToLower(filename)
-	filename = path.Join(basedir, filename+".csv")
-	file, err := os.Create(filename)
+	filename = filepath.Join(basedir, filename+".csv")
+	file, err := os.Create(filepath.Clean(filename))
 	if err != nil {
 		err = fmt.Errorf("could not create output file %q; %w", filename, err)
 		return

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -57,12 +58,12 @@ func VenmoToYNAB(p Params) error {
 	})
 }
 
-func readParseVenmo(filepath string, onRow func(*entity.Venmo) error) error {
-	file, err := os.Open(filepath)
+func readParseVenmo(pathToFile string, onRow func(*entity.Venmo) error) error {
+	file, err := os.Open(filepath.Clean(pathToFile))
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	csvReader := csv.NewReader(bufio.NewReader(file))
 	const countNonDataRows = 4

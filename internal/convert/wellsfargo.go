@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -47,12 +48,12 @@ func WellsFargoToYNAB(p Params) error {
 	})
 }
 
-func readParseWellsFargo(filepath string, onRow func(*entity.WellsFargo) error) error {
-	file, err := os.Open(filepath)
+func readParseWellsFargo(pathToFile string, onRow func(*entity.WellsFargo) error) error {
+	file, err := os.Open(filepath.Clean(pathToFile))
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	csvReader := csv.NewReader(bufio.NewReader(file))
 

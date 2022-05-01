@@ -3,6 +3,7 @@ package convert
 import (
 	"encoding/csv"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -122,11 +123,11 @@ func (w *testLogger) Write(in []byte) (n int, e error) {
 }
 
 func readAllOutput(filename string) (out [][]string, err error) {
-	file, err := os.Open(filename)
+	file, err := os.Open(filepath.Clean(filename))
 	if err != nil {
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	reader := csv.NewReader(file)
 	out, err = reader.ReadAll()

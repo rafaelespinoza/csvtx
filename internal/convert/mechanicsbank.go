@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
@@ -55,12 +56,12 @@ func MechanicsBankToYNAB(p Params) error {
 	})
 }
 
-func readParseMechanicsBank(filepath string, onRow func(*entity.MechanicsBank) error) error {
-	file, err := os.Open(filepath)
+func readParseMechanicsBank(pathToFile string, onRow func(*entity.MechanicsBank) error) error {
+	file, err := os.Open(filepath.Clean(pathToFile))
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	csvReader := csv.NewReader(bufio.NewReader(file))
 	// There are some metadata rows at the top, with varying numbers of columns.
