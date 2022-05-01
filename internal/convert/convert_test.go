@@ -10,6 +10,28 @@ import (
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
 
+func TestParamsInit(t *testing.T) {
+	// check that different combos of empty values can work together w/o panic.
+	tests := []struct {
+		name   string
+		params Params
+	}{
+		{"LogDest", Params{Outdir: t.TempDir()}},
+		{"Outdir", Params{LogDest: os.Stderr}},
+		{"both", Params{}},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.params.init()
+
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 func TestParseMoney(t *testing.T) {
 	tables := []struct {
 		cell     string

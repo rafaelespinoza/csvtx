@@ -21,6 +21,10 @@ type Params struct {
 }
 
 func (p *Params) init() error {
+	if p.LogDest == nil {
+		p.LogDest = os.Stderr
+	}
+
 	if p.Outdir == "" {
 		if outdir, err := os.MkdirTemp("", "csvtx_*"); err != nil {
 			return err
@@ -28,10 +32,6 @@ func (p *Params) init() error {
 			fmt.Fprintf(p.LogDest, "files will be written to tempdir %q\n", outdir)
 			p.Outdir = outdir
 		}
-	}
-
-	if p.LogDest == nil {
-		p.LogDest = os.Stderr
 	}
 
 	return nil
