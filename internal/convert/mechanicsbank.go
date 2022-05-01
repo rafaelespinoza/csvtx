@@ -5,8 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
@@ -39,7 +38,13 @@ func MechanicsBankToYNAB(p Params) error {
 		}
 	}()
 
-	return readParseMechanicsBank(p.Infile, func(m *entity.MechanicsBank) error {
+	infile, err := openFile(p.Infile)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = infile.Close() }()
+
+	return readParseMechanicsBankCSV(infile, func(m *entity.MechanicsBank) error {
 		var amount entity.AmountSubunits
 		if m.AmountCredit == 0 && m.AmountDebit != 0 { // is it negative?
 			amount = m.AmountDebit * -1
@@ -56,35 +61,12 @@ func MechanicsBankToYNAB(p Params) error {
 	})
 }
 
-func readParseMechanicsBank(pathToFile string, onRow func(*entity.MechanicsBank) error) error {
-	file, err := os.Open(filepath.Clean(pathToFile))
-	if err != nil {
-		return err
-	}
-	defer func() { _ = file.Close() }()
-
-	csvReader := csv.NewReader(bufio.NewReader(file))
+func readParseMechanicsBankCSV(r io.Reader, onRow func(*entity.MechanicsBank) error) error {
+	csvReader := csv.NewReader(bufio.NewReader(r))
 	// There are some metadata rows at the top, with varying numbers of columns.
-	// Reading past them for now.
 	csvReader.FieldsPerRecord = -1
 
-	// The input CSV will either include or exclude a Balance field. So, all the
-	// data rows in some files might contain 8 fields. But if you were to
-	// download another CSV a few days later, all the data rows could have 9
-	// fields. I've witnessed it going back and forth; it's seemingly random.
-	//
-	// For the immediate future, there isn't a use case to use the last few
-	// columns anyways, so it doesn't matter; those values are ignored. Some
-	// extra logic would be needed to handle this variation if those values at
-	// the end are needed. See the tests and testdata for known examples.
-	const countNonDataRows = 4
-	for i := 0; i < countNonDataRows; i++ {
-		// Read past some header rows until the data starts.
-		if _, err := csvReader.Read(); err != nil {
-			return fmt.Errorf("could not read line %d; %w", i+1, err)
-		}
-	}
-	lineNumber := countNonDataRows
+	var lineNumber int
 
 	for {
 		lineNumber++
@@ -97,7 +79,9 @@ func readParseMechanicsBank(pathToFile string, onRow func(*entity.MechanicsBank)
 		}
 
 		tx, err := parseMechanicsBankRow(line)
-		if err != nil {
+		if err == errNotTransaction {
+			continue
+		} else if err != nil {
 			return fmt.Errorf("could not parse line %d; %w", lineNumber, err)
 		}
 
@@ -108,6 +92,28 @@ func readParseMechanicsBank(pathToFile string, onRow func(*entity.MechanicsBank)
 }
 
 func parseMechanicsBankRow(in []string) (out *entity.MechanicsBank, err error) {
+	// Is this a metadata row?
+	if len(in) < 6 {
+		err = errNotTransaction
+		return
+	}
+
+	// Is this a header row?
+	if in[1] == "Date" {
+		err = errNotTransaction
+		return
+	} else if strings.Contains(in[4], "Amount") || strings.Contains(in[5], "Amount") {
+		err = errNotTransaction
+		return
+	}
+
+	// Now parse transaction data.
+	//
+	// For what it's worth, sometimes a Mechanics Bank CSV export will contain a
+	// Balance field and sometimes it won't; it's not very consistent. See the
+	// tests and testdata for known examples. There isn't a use case right now
+	// for the last few columns anyways, so the values are discarded.
+
 	var (
 		date                      time.Time
 		amountDebit, amountCredit entity.AmountSubunits

@@ -3,11 +3,8 @@ package convert
 import (
 	"bufio"
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -41,7 +38,13 @@ func VenmoToYNAB(p Params) error {
 		}
 	}()
 
-	return readParseVenmo(p.Infile, func(m *entity.Venmo) error {
+	infile, err := openFile(p.Infile)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = infile.Close() }()
+
+	return readParseVenmoCSV(infile, func(m *entity.Venmo) error {
 		payee := m.From
 		if m.Amount < 0 && m.TransactionType == "Payment" {
 			payee = m.To
@@ -58,23 +61,10 @@ func VenmoToYNAB(p Params) error {
 	})
 }
 
-func readParseVenmo(pathToFile string, onRow func(*entity.Venmo) error) error {
-	file, err := os.Open(filepath.Clean(pathToFile))
-	if err != nil {
-		return err
-	}
-	defer func() { _ = file.Close() }()
+func readParseVenmoCSV(r io.Reader, onRow func(*entity.Venmo) error) error {
+	csvReader := csv.NewReader(bufio.NewReader(r))
+	var lineNumber int
 
-	csvReader := csv.NewReader(bufio.NewReader(file))
-	const countNonDataRows = 4
-	for i := 0; i < countNonDataRows; i++ {
-		// Read past some header rows until the data starts.
-		if _, err := csvReader.Read(); err != nil {
-			return fmt.Errorf("could not read line %d; %w", i+1, err)
-		}
-	}
-
-	lineNumber := countNonDataRows
 	for {
 		lineNumber++
 
@@ -87,7 +77,6 @@ func readParseVenmo(pathToFile string, onRow func(*entity.Venmo) error) error {
 
 		tx, err := parseVenmoRow(line)
 		if err == errNotTransaction {
-			// skip over the data rows that only denote account balance.
 			continue
 		} else if err != nil {
 			return fmt.Errorf("could not parse line %d; %w", lineNumber, err)
@@ -99,13 +88,31 @@ func readParseVenmo(pathToFile string, onRow func(*entity.Venmo) error) error {
 	}
 }
 
-var errNotTransaction = errors.New("not a transaction")
-
 func parseVenmoRow(in []string) (out *entity.Venmo, err error) {
-	if in[1] == "" { // Consider an ID value a pre-requisite for a transaction.
+	// Safety check. Also, there are more columns, but don't need them now.
+	if len(in) < 9 {
 		err = errNotTransaction
 		return
 	}
+
+	// Is this a metadata row? Applicable to first 2 lines of a file.
+	if strings.HasPrefix(in[0], "Account") {
+		err = errNotTransaction
+		return
+	}
+	// Is this a header row? 3rd line of the file.
+	if in[0] == "" && in[1] == "ID" {
+		err = errNotTransaction
+		return
+	}
+	// Is this the row that only denotes account balance? 4th line of the file.
+	if in[1] == "" { // Consider an ID value a pre-requisite for a transaction
+		err = errNotTransaction
+		return
+	}
+
+	// Now parse transaction data.
+
 	date, err := time.Parse("2006-01-02T15:04:05", in[2])
 	if err != nil {
 		return

@@ -5,8 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -38,7 +36,13 @@ func WellsFargoToYNAB(p Params) error {
 		}
 	}()
 
-	return readParseWellsFargo(p.Infile, func(m *entity.WellsFargo) error {
+	infile, err := openFile(p.Infile)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = infile.Close() }()
+
+	return readParseWellsFargoCSV(infile, func(m *entity.WellsFargo) error {
 		row := ynabAsRow(entity.YNAB{
 			Date:   m.Date,
 			Payee:  m.Description,
@@ -48,16 +52,10 @@ func WellsFargoToYNAB(p Params) error {
 	})
 }
 
-func readParseWellsFargo(pathToFile string, onRow func(*entity.WellsFargo) error) error {
-	file, err := os.Open(filepath.Clean(pathToFile))
-	if err != nil {
-		return err
-	}
-	defer func() { _ = file.Close() }()
-
-	csvReader := csv.NewReader(bufio.NewReader(file))
-
+func readParseWellsFargoCSV(r io.Reader, onRow func(*entity.WellsFargo) error) error {
+	csvReader := csv.NewReader(bufio.NewReader(r))
 	var lineNumber int
+
 	for {
 		lineNumber++
 

@@ -2,6 +2,7 @@ package convert
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -114,4 +115,19 @@ func ynabAsRow(t entity.YNAB) []string {
 		outflow,
 		inflow,
 	}
+}
+
+// errNotTransaction is a signal that a data line is probably some kind of
+// metadata or header row. The caller (a parsing function) should skip over the
+// data and read the next line.
+var errNotTransaction = errors.New("not a transaction")
+
+func openFile(pathToFile string) (out *os.File, err error) {
+	if pathToFile == "" {
+		out = os.Stdin
+		return
+	}
+
+	out, err = os.Open(filepath.Clean(pathToFile))
+	return
 }

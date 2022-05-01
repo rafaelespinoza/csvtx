@@ -52,11 +52,13 @@ Description:
 	Converts an input CSV from a source service to a CSV format ready for import
 	into YNAB 4 classic edition. The source service must be one of:
 
-	%v
+		%v
+
+	If flag i is empty, then it reads from standard input.
 
 Flags:
 
-`, _Bin, cmdName, strings.Join(fromServices, "\n\t"))
+`, _Bin, cmdName, strings.Join(fromServices, "\n\t\t"))
 				flags.PrintDefaults()
 			}
 

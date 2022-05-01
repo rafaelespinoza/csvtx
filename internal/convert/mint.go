@@ -5,8 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -36,7 +34,13 @@ func MintToYNAB(p Params) error {
 		}
 	}()
 
-	return readParseMint(p.Infile, func(m *entity.Mint) error {
+	infile, err := openFile(p.Infile)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = infile.Close() }()
+
+	return readParseMintCSV(infile, func(m *entity.Mint) error {
 		if _, ok := filesByAccount[m.Account]; !ok {
 			entry, err := initOutfile(m.Account, ynabHeaders, p.Outdir)
 			if err != nil {
@@ -56,19 +60,9 @@ func MintToYNAB(p Params) error {
 	})
 }
 
-func readParseMint(pathToFile string, onRow func(*entity.Mint) error) error {
-	file, err := os.Open(filepath.Clean(pathToFile))
-	if err != nil {
-		return err
-	}
-	defer func() { _ = file.Close() }()
-
-	csvReader := csv.NewReader(bufio.NewReader(file))
-
-	lineNumber := 1
-	if _, err := csvReader.Read(); err != nil { // Read past the header row.
-		return fmt.Errorf("could not read line %d; %w", lineNumber, err)
-	}
+func readParseMintCSV(r io.Reader, onRow func(*entity.Mint) error) error {
+	csvReader := csv.NewReader(bufio.NewReader(r))
+	var lineNumber int
 
 	for {
 		lineNumber++
@@ -81,7 +75,9 @@ func readParseMint(pathToFile string, onRow func(*entity.Mint) error) error {
 		}
 
 		tx, err := parseMintRow(line)
-		if err != nil {
+		if err == errNotTransaction {
+			continue
+		} else if err != nil {
 			return fmt.Errorf("could not parse line %d; %w", lineNumber, err)
 		}
 
@@ -92,6 +88,12 @@ func readParseMint(pathToFile string, onRow func(*entity.Mint) error) error {
 }
 
 func parseMintRow(in []string) (out *entity.Mint, err error) {
+	// Is this a header row?
+	if in[0] == "Date" {
+		err = errNotTransaction
+		return
+	}
+
 	date, err := parseDate(in[0])
 	if err != nil {
 		return
