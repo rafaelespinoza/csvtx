@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"sort"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -58,6 +59,26 @@ func MintToYNAB(p Params) error {
 		})
 		return csvWriter.Write(row)
 	})
+}
+
+func ReadParseMint(r io.Reader, sortDateAsc bool) (out []*entity.Mint, err error) {
+	onRow := func(row *entity.Mint) error {
+		out = append(out, row)
+		return nil
+	}
+	err = readParseMintCSV(r, onRow)
+	if err != nil {
+		return
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		if sortDateAsc {
+			return out[i].Date.Before(out[j].Date)
+		}
+		return out[j].Date.Before(out[i].Date)
+	})
+
+	return
 }
 
 func readParseMintCSV(r io.Reader, onRow func(*entity.Mint) error) error {

@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -59,6 +60,25 @@ func MechanicsBankToYNAB(p Params) error {
 		})
 		return output.w.Write(row)
 	})
+}
+
+func ReadParseMechanicsBank(r io.Reader, sortDateAsc bool) (out []*entity.MechanicsBank, err error) {
+	onRow := func(row *entity.MechanicsBank) error {
+		out = append(out, row)
+		return nil
+	}
+	err = readParseMechanicsBankCSV(r, onRow)
+	if err != nil {
+		return
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		if sortDateAsc {
+			return out[i].Date.Before(out[j].Date)
+		}
+		return out[j].Date.Before(out[i].Date)
+	})
+	return
 }
 
 func readParseMechanicsBankCSV(r io.Reader, onRow func(*entity.MechanicsBank) error) error {

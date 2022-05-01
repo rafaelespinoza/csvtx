@@ -10,20 +10,6 @@ import (
 	"github.com/rafaelespinoza/csvtx/internal/convert"
 )
 
-const (
-	serviceMechanicsBank = "mechanicsbank"
-	serviceMint          = "mint"
-	serviceVenmo         = "venmo"
-	serviceWellsFargo    = "wellsfargo"
-)
-
-var fromServices = []string{
-	serviceMechanicsBank,
-	serviceMint,
-	serviceVenmo,
-	serviceWellsFargo,
-}
-
 func makeConvert(cmdName string) alf.Directive {
 	var params struct {
 		Infile string

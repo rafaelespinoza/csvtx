@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"sort"
 
 	"github.com/rafaelespinoza/csvtx/internal/entity"
 )
@@ -50,6 +51,25 @@ func WellsFargoToYNAB(p Params) error {
 		})
 		return output.w.Write(row)
 	})
+}
+
+func ReadParseWellsFargo(r io.Reader, sortDateAsc bool) (out []*entity.WellsFargo, err error) {
+	onRow := func(row *entity.WellsFargo) error {
+		out = append(out, row)
+		return nil
+	}
+	err = readParseWellsFargoCSV(r, onRow)
+	if err != nil {
+		return
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		if sortDateAsc {
+			return out[i].Date.Before(out[j].Date)
+		}
+		return out[j].Date.Before(out[i].Date)
+	})
+	return
 }
 
 func readParseWellsFargoCSV(r io.Reader, onRow func(*entity.WellsFargo) error) error {

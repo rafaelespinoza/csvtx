@@ -25,8 +25,9 @@ func New() Root {
 		Description: "main command for " + _Bin,
 		Flags:       flag.NewFlagSet("main", flag.ExitOnError),
 		Subs: map[string]alf.Directive{
-			"convert": makeConvert("convert"),
-			"version": makeVersion("version"),
+			"convert":   makeConvert("convert"),
+			"normalize": makeNormalize("normalize"),
+			"version":   makeVersion("version"),
 		},
 	}
 
@@ -56,4 +57,18 @@ Flags:
 	}
 
 	return &alf.Root{Delegator: &deleg}
+}
+
+const (
+	serviceMechanicsBank = "mechanicsbank"
+	serviceMint          = "mint"
+	serviceVenmo         = "venmo"
+	serviceWellsFargo    = "wellsfargo"
+)
+
+var fromServices = []string{
+	serviceMechanicsBank,
+	serviceMint,
+	serviceVenmo,
+	serviceWellsFargo,
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -59,6 +60,26 @@ func VenmoToYNAB(p Params) error {
 		})
 		return output.w.Write(row)
 	})
+}
+
+func ReadParseVenmo(r io.Reader, sortDateAsc bool) (out []*entity.Venmo, err error) {
+	onRow := func(row *entity.Venmo) error {
+		out = append(out, row)
+		return nil
+	}
+	err = readParseVenmoCSV(r, onRow)
+	if err != nil {
+		return
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		if sortDateAsc {
+			return out[i].Datetime.Before(out[j].Datetime)
+		}
+		return out[j].Datetime.Before(out[i].Datetime)
+	})
+
+	return
 }
 
 func readParseVenmoCSV(r io.Reader, onRow func(*entity.Venmo) error) error {
